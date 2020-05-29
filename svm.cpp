@@ -8,7 +8,6 @@
 #include <ENCRYPTO_utils/crypto/crypto.h>
 #include <ENCRYPTO_utils/parse_options.h>
 
-// Currently only computes the kernel and returns its result
 share* build_kernel_circuit(share* s_x1, share* s_x2, uint32_t nvals, uint32_t bitlen, ArithmeticCircuit* ac) {
 
 	// pairwise multiplication
@@ -19,23 +18,19 @@ share* build_kernel_circuit(share* s_x1, share* s_x2, uint32_t nvals, uint32_t b
 	
 	// add up individual multiplication resuls
 	for(int i = 1; i < nvals; i++) {
-		s_x1->set_wire_id(0, ac->PutADDGate(s_x1->get_wire_id(0), 			s_x1->get_wire_id(i)));
+		s_x1->set_wire_id(0, ac->PutADDGate(s_x1->get_wire_id(0), s_x1->get_wire_id(i)));
 	}
 	
 	// discard all wires, except the addition result
 	s_x1->set_bitlength(1);
 	
-	return s_x1;
-}
-
-share* build_svm_circuit(share* s_x1, share* s_y, uint32_t nvals, uint32_t bitlen, ArithmeticCircuit* ac) {
-	// To Do: Implement SVM training and prediction
+	return s_x1; // kernel result
 }
 
 int32_t test_kernel_computation(e_role role, const std::string& address, uint16_t port, seclvl seclvl, uint32_t nvals, uint32_t bitlen, uint32_t nthreads, e_mt_gen_alg mt_alg, e_sharing sharing) {
 	
 	/* Step 1: Create ABYParty object */
-	ABYParty* party = new ABYParty(role, address, port, seclvl, bitlen, 		nthreads, mt_alg);
+	ABYParty* party = new ABYParty(role, address, port, seclvl, bitlen, nthreads, mt_alg);
 	
 	/* Step 2: Create sharings */
 	std::vector<Sharing*>& sharings = party->GetSharings();
@@ -92,9 +87,5 @@ int32_t test_kernel_computation(e_role role, const std::string& address, uint16_
 	// delete y;
 	delete party;
 	
-	return 0;
-}
-
-int main() {
 	return 0;
 }
