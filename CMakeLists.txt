@@ -28,6 +28,6 @@ set_target_properties(RELIC::relic PROPERTIES
 	IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/extern/relic/build/lib/librelic_s.a"
 )
 
-add_executable(SVM svm_test.cpp)
+add_executable(SVM svm.cpp)
 target_link_libraries(SVM ABY::aby)
 target_link_libraries(SVM RELIC::relic)

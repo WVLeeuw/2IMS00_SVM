@@ -1,3 +1,7 @@
+// Author: Wouter Leeuw
+// Based on the ABY testing framework
+// Test file for kernel computation
+
 #include <ENCRYPTO_utils/crypto/crypto.h>
 #include <ENCRYPTO_utils/parse_options.h>
 
@@ -13,7 +17,8 @@ int32_t read_test_options(int32_t* argcp, char*** argvp, e_role* role, uint32_t*
 	{ (void*) secparam, T_NUM, "s", "Symmetric Security Bits, default: 128", false, false},
 	{ (void*) address, T_STR, "a", "IP-address, default: localhost", false, false},
 	{ (void*) &int_port, T_NUM, "p", "Port, default: 7766", false, false},
-	{ (void*) test_op, T_NUM, "t", "Single test, default:off", false, false } };
+	{ (void*) test_op, T_NUM, "t", "Single test, default:off", false, false }
+	};
 	
 	if (!parse_options(argcp, argvp, options, sizeof(options) / sizeof(parsing_ctx))) {
 		print_usage(*argvp[0], options, sizeof(options) / sizeof(parsing_ctx));
