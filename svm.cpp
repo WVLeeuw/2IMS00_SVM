@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <map>
 #include <cstdlib>
+#include <unistd.h>
 
 #include "ABY/src/abycore/circuit/circuit.h"
 #include "ABY/src/abycore/circuit/arithmeticcircuits.h"
@@ -18,15 +19,16 @@
 
 // N.B. if dataset is known, no_samples, attr_per_sample and no_testing can be defined beforehand
 
-// To do: Check whether all data is double (or also int). Double can store either one so it is the safest option.
+// SVM class
 class Support_Vector_Machine{
 	// Initialization
-	public:
+	private:
 	double lrate = 0.005;
-	double threshold = 0.001;
+	double threshold = 0.005;
 	double w1 = 1;
 	double b = 0;
 	
+	public:
 	// Gives the loss for a data point
 	double calc_loss(double &x1, int &y, double &w1, double &b) {
 	
@@ -73,75 +75,109 @@ class Support_Vector_Machine{
 		double db = 0;
 		
 		int iter = 0;
-		bool opt = false;
 		
-		while(!opt) {
+		while(true) {
 			double cost = calc_cost(x1, y, w1, b, dw1, db);
+			if(iter % 1000 == 0) {
 			std::cout << "Iteration: " << iter << " cost = " << cost << " weight update = " << dw1 << " bias update = " << db << std::endl;
+			}
 			iter++;
-			if(abs(dw1) < threshold && abs(db) < threshold) {
-			std::cout << "y = " << w1 << "* x1 + " << b << std::endl;
-			break;
+			if(abs(dw1) < threshold && abs(db) < threshold || iter >= 1000000) {
+				std::cout << "y = " << w1 << " * x1 + " << b << std::endl;
+				break;
 			}
 			w1 -= lrate * dw1;
 			b -= lrate * db;
-			if(iter >= 100000) {
-				opt = true;
-			}
 		}
 	}
 	
 	// Data is single value resulting from the kernel function
-	int predict(double &x1, double &w1, double &b) {
+	// Not needed for project
+	int predict(double &x1) {
 		int pred = 0;
 		if(x1 * w1 + b >= 1) {
 			pred = 1;
 		}
+		std::cout << "Predicted class: " << pred << std::endl;
 		return pred;
 	}
 };
 
-void to_categorical() {
-
-}
-
-void discretize() {
-
-}
-
-void populate_data(std::vector<std::vector<int>> &data, std::map<std::string, int> &classmap, std::vector<std::map<std::string, int>> attrimap, std::string c, std::vector<std::string> attrs) {
-
-	std::vector<int> apair;
-	apair.push_back(classmap[c]);
-	int attr_values_num = 0;
-	for(int i = 0; i < attrs.size(); i++) {
-		apair.push_back(attr_values_num + attrimap[i][attrs[i]]);
-		attr_values_num += attrimap[i].size();
-	}
-	std::vector<std::vector<int>> newarr(1, apair);
-	data.insert(data.end(), newarr.begin(), newarr.end());
-}
-
-void read_data(std::string filename, std::vector<std::vector<int>>& data, std::map<std::string, int> class_map, std::vector<std::map<std::string, int>>& attr_map, int n_samples) {
-
-	std::ifstream in(filename);
-	if (!in) {
-		std::cerr << "Cannot open File: " << filename << std::endl;
-		return;
-	}
+// Currently particularly designed for absenteeism
+void read_file(std::string &filename, std::vector<int> &cls, std::vector<std::vector<double>> &data) {
+		
+	chdir("..");
 	
-	std::string c, line, attr;
-	std::cout << "Reading file" << std::endl;
-	while (getline(in, line)) {
-		std::istringstream iss(line);
-		iss >> c;
-		std::vector<std::string> attrs;
-		while (iss >> attr) {
-			attrs.push_back(attr);
-		}
-		populate_data(data, class_map, attr_map, c, attrs);
+	std::ifstream in(filename);
+	
+	std::string id, reason, month, day, season, expense, distance, time, age, workload, target, failure, educ, son, drink, smoke, pet, weight, height, bmi, absent_hours;
+	
+	double n_id, n_reason, n_month, n_day, n_season, n_expense, n_distance, n_time, n_age, n_workload, n_target, n_failure, n_educ, n_son, n_drink, n_smoke, n_pet, n_weight, n_height, n_bmi, n_absent_hours;
+	
+	std::string line;
+	
+	if(!in.is_open()) {
+		std::cerr << "Cannot open the File: " << filename << std::endl;
 	}
-	std::cout << "File has been read" << std::endl;
+
+	while(getline(in, line)) {
+		std::stringstream ss(line);
+		
+		// Read as strings
+		getline(ss, id, ';');		
+		getline(ss, reason, ';');
+		getline(ss, month, ';');
+		getline(ss, day, ';');
+		getline(ss, season, ';');
+		getline(ss, expense, ';');
+		getline(ss, distance, ';');
+		getline(ss, time, ';');
+		getline(ss, age, ';');
+		getline(ss, workload, ';');
+		getline(ss, target, ';');
+		getline(ss, failure, ';');
+		getline(ss, educ, ';');
+		getline(ss, son, ';');
+		getline(ss, drink, ';');
+		getline(ss, smoke, ';');
+		getline(ss, pet, ';');
+		getline(ss, weight, ';');
+		getline(ss, height, ';');
+		getline(ss, bmi, ';');
+		getline(ss, absent_hours, ';');
+		
+		// Convert to double
+		n_id = stod(id);
+		n_reason = stoi(reason);
+		n_month = stod(month);
+		n_day = stod(day);
+		n_season = stod(season);
+		n_expense = stod(expense);
+		n_distance = stod(distance);
+		n_time = stod(time);
+		n_age = stod(age);
+		n_workload = stod(workload);
+		n_target = stod(target);
+		n_failure = stod(failure);
+		n_educ = stod(educ);
+		n_son = stod(son);
+		n_drink = stod(drink);
+		n_smoke = stod(smoke);
+		n_pet = stod(pet);
+		n_weight = stod(weight);
+		n_height = stod(height);
+		n_bmi = stod(bmi);
+		n_absent_hours = stod(absent_hours);
+		
+		// Put data element in vector
+		std::vector<double> el = {n_id, n_month, n_day, n_season, n_expense, n_distance, n_time, n_age, n_workload, n_target, n_failure, n_educ, n_son, n_drink, n_smoke, n_pet, n_weight, n_height, n_bmi, n_absent_hours};
+		cls.push_back(n_reason);
+		data.push_back(el);		
+		std::cout << "Read ID: " << el[0] << std::endl;
+	}
+		
+	std::cout << "File read." << std::endl;
+	in.close();
 }
 
 // Computes the kernel given two shares of vectors
@@ -177,11 +213,11 @@ int32_t test_kernel_computation(e_role role, const std::string& address, uint16_
 	
 	share *s_x1, *s_x2, *s_y, *s_out;
 	
-	uint16_t x1, x2;
-	uint16_t output, v_sum = 0;
+	uint32_t x1, x2;
+	uint32_t output, v_sum = 0;
 	
-	std::vector<uint16_t> x1_vals(nvals);
-	std::vector<uint16_t> x2_vals(nvals);
+	std::vector<uint32_t> x1_vals(nvals);
+	std::vector<uint32_t> x2_vals(nvals);
 	
 	uint32_t i;
 	srand(time(NULL));
@@ -217,13 +253,6 @@ int32_t test_kernel_computation(e_role role, const std::string& address, uint16_
 	return 0;
 }
 
-int main() {
-	std::vector<double> x1 = {35, 27, 19, 25, 26, 45, 46, 48, 47, 29, 27, 28, 27, 30, 28, 23, 27, 18};
-	std::vector<int> y = {-1, -1, -1, -1, -1, 1, 1, 1, 1, -1, 1, -1, -1, -1, -1, -1, -1, -1};
-	
-	Support_Vector_Machine svm;
-	
-	svm.fit(x1, y);
-
-	return 0;
-}
+//int main() {
+//
+//}
