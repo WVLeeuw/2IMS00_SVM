@@ -53,10 +53,12 @@ int main(int argc, char** argv) {
 	std::string attr_file = "";
 	
 	// Test file reading
-	std::string data_file = "Datasets/Absenteeism/Absenteeism_at_work.csv";
 	std::vector<int> cls;	
 	std::vector<std::vector<double>> data;
-	read_file(data_file, cls, data);
+//	read_absenteeism(cls, data);
+//	read_breast_cancer(cls, data);
+//	read_adult(cls, data);
+	read_balance_scale(cls, data);
 	
 	uint32_t nvals = static_cast<int>(data[0].size());
 	
@@ -64,43 +66,8 @@ int main(int argc, char** argv) {
 	
 	seclvl seclvl = get_sec_lvl(secparam);
 
-	// Compute kernels with ABY
-	ABYParty* party = new ABYParty(role, address, port, seclvl, bitlen, nthreads, mt_alg);
+	// Compute kernels with ABY and train SVM
+	test_svm_computation(role, address, port, seclvl, nvals, bitlen, nthreads, mt_alg, S_ARITH, cls, data);
 	
-	std::vector<Sharing*>& sharings = party->GetSharings();
-	
-	e_sharing sharing = S_ARITH;
-	
-	ArithmeticCircuit* circ = 
-		(ArithmeticCircuit*) 
-		sharings[sharing]->GetCircuitBuildRoutine();
-		
-	share *s_x1, *s_out;
-	std::vector<uint32_t> to_fit;
-	
-	std::vector<uint32_t> x1;
-	uint32_t output = 0;
-	
-	std::vector<std::vector<uint32_t>> x1_vals(nvals);
-	
-	// Fill x1_vals with vectors
-	for (int i=0; i < nvals; i++) {
-		x1 = std::vector<uint32_t>(data[i].begin(), data[i].end());		
-		x1_vals[i] = x1;
-	}
-	
-	// Loop over all vectors in x1_vals	
-	for (int j=0; j < nvals; j++) {
-		s_x1 = circ->PutSIMDINGate(x1_vals[j].size(), x1_vals[j].data(), 16, SERVER);
-		s_out = build_kernel_circuit(s_x1, s_x1, nvals, 32, (ArithmeticCircuit*) circ);
-		s_out = circ->PutOUTGate(s_out, ALL);
-		party->ExecCircuit();	
-		output = s_out->get_clear_value<uint16_t>();
-		std::cout << "Circuit result: " << output << std::endl;	
-		to_fit.push_back(output);
-	}
-	
-	std::vector<double> attr(to_fit.begin(), to_fit.end());
-	Support_Vector_Machine svm;
-	svm.fit(attr, cls);
+	return 0;
 }
