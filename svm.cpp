@@ -172,8 +172,7 @@ void read_absenteeism(std::vector<int> &cls, std::vector<std::vector<double>> &d
 		// Put data element in vector
 		std::vector<double> el = {n_id, n_month, n_day, n_season, n_expense, n_distance, n_time, n_age, n_workload, n_target, n_failure, n_educ, n_son, n_drink, n_smoke, n_pet, n_weight, n_height, n_bmi, n_absent_hours};
 		cls.push_back(n_reason);
-		data.push_back(el);		
-		std::cout << "Read ID: " << el[0] << std::endl;
+		data.push_back(el);
 	}
 		
 	std::cout << "File read." << std::endl;
@@ -279,7 +278,6 @@ void read_breast_cancer(std::vector<int> &cls, std::vector<std::vector<double>> 
 		std::vector<double> el = {n_age, n_meno, n_tumor_size, n_inv_nodes, n_node_caps, n_deg_malig, n_breast, n_breast_quad, n_irradiat};
 		cls.push_back(n_recc);
 		data.push_back(el);
-		std::cout << "Read patient having tumor size: " << el[2] << std::endl;
 	}
 	
 	std::cout << "File read." << std::endl;
@@ -436,7 +434,6 @@ void read_adult(std::vector<int> &cls, std::vector<std::vector<double>> &data) {
 		std::vector<double> el = {n_age, n_work_cls, n_fnlwgt, n_edu, n_edu_num, n_mar, n_occ, n_rel, n_race, n_sex, n_cap_gain, n_cap_loss, n_hpw, n_native};
 		cls.push_back(n_income);
 		data.push_back(el);
-		std::cout << "Read adult having sex: " << el[9] << std::endl;
 	}
 	
 	std::cout << "File read." << std::endl;
@@ -482,7 +479,6 @@ void read_balance_scale(std::vector<int> &cls, std::vector<std::vector<double>> 
 		std::vector<double> el = {n_l_w, n_l_d, n_r_w, n_r_d};
 		cls.push_back(n_lr);
 		data.push_back(el);
-		std::cout << "Read scale having right weight: " << el[2] << std::endl;
 	}
 	
 	std::cout << "File read." << std::endl;
@@ -574,17 +570,29 @@ int32_t test_svm_computation(e_role role, const std::string& address, uint16_t p
 	
 	std::cout << "Data contains " << data_vals << " rows and " << nvals << " attributes." << std::endl;
 	
-	std::vector<std::vector<uint32_t>> x1_vals(data_vals);
+	std::cout << "Splitting data..." << std::endl;
 	
-	std::cout << "Filling shares." << std::endl;
-	// Fill x1_vals with vectors
 	for (int i=0; i < data_vals; i++) {
-		x1 = std::vector<uint32_t>(data[i].begin(), data[i].end());		
-		x1_vals[i] = x1;		
-	}
-	
-	std::cout << "Shares filled, building circuits." << std::endl;
-	for (int j=0; j < data_vals; j++) {
+		int arr[data[i].size()];
+		std::copy(data[i].begin(), data[i].end(), arr);
+		
+		// Split data
+		for (int j=0; j < nvals; j++) {
+			if (arr[j] > 1) {
+				arr[j] = arr[j]/2;
+			}
+		}
+		
+		// Convert to vector
+		std::vector<int> split_vec;
+		for (int k : arr) {
+			split_vec.push_back(k);
+		}
+		
+		std::vector<uint32_t> split_p1(split_vec.begin(), split_vec.end());
+		std::vector<uint32_t> split_p2(split_vec.begin(), split_vec.end());
+		
+		// ABY
 		ABYParty* party = new ABYParty(role, address, port, seclvl, bitlen, nthreads, mt_alg);
 	
 		std::vector<Sharing*>& sharings = party->GetSharings();
@@ -592,25 +600,15 @@ int32_t test_svm_computation(e_role role, const std::string& address, uint16_t p
 		ArithmeticCircuit* circ = 
 		(ArithmeticCircuit*) 
 		sharings[sharing]->GetCircuitBuildRoutine();
-	
-		share *s_x1, *s_x2, *s_out;
 		
-		s_x1 = circ->PutSIMDINGate(x1_vals[j].size(), x1_vals[j].data(), 16, SERVER);
+		share *s1, *s2, *s_out;
 		
-		// pairwise multiplication
-		s_x1 = circ->PutMULGate(s_x1, s_x1);
+		s1 = circ -> PutSIMDINGate(nvals, split_p1.data(), 16, SERVER);
+		s2 = circ -> PutSIMDINGate(nvals, split_p2.data(), 16, CLIENT);
 		
-		// split into separate wires
-		s_x1 = circ->PutSplitterGate(s_x1);
+		s_out = build_kernel_circuit(s1, s2, nvals, 16, circ);
 		
-		// add up multiplication results
-		for (int k=1; k<nvals; k++) {
-			s_x1 -> set_wire_id(0, circ->PutADDGate(s_x1->get_wire_id(0), s_x1->get_wire_id(k)));
-		}
-				
-		// discard all wires except addition result
-		s_x1->set_bitlength(1); // kernel result		
-		s_out = circ->PutOUTGate(s_x1, ALL);
+		s_out = circ -> PutOUTGate(s_out, ALL);
 		
 		party->ExecCircuit();
 	

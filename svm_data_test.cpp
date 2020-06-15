@@ -57,8 +57,8 @@ int main(int argc, char** argv) {
 	std::vector<std::vector<double>> data;
 //	read_absenteeism(cls, data);
 //	read_breast_cancer(cls, data);
-//	read_adult(cls, data);
-	read_balance_scale(cls, data);
+	read_adult(cls, data);
+//	read_balance_scale(cls, data);
 	
 	uint32_t nvals = static_cast<int>(data[0].size());
 	
