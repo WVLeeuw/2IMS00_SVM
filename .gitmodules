@@ -7,3 +7,6 @@
 [submodule "ABY"]
 	path = ABY
 	url = https://github.com/encryptogroup/ABY.git
+[submodule "opencv"]
+	path = opencv
+	url = https://github.com/opencv/opencv.git

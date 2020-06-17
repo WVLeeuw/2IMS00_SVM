@@ -539,17 +539,17 @@ int32_t test_svm_computation(e_role role, const std::string& address, uint16_t p
 		delete party;
 	}
 	
-	// Copy attributes to 2D array
-	int attr_arr[to_fit.size()][to_fit[0].size()];
-	std::copy(to_fit.start(), to_fit.end(), attr_arr);
+	// Copy attributes to array
+	int attr_arr[data_vals];
+	std::copy(to_fit.begin(), to_fit.end(), attr_arr);
 	
 	// Copy class labels to array
-	int cls_arr[cls.size()];
-	std::copy(cls.start(), cls.end(), cls_arr);
+	int cls_arr[data_vals];
+	std::copy(cls.begin(), cls.end(), cls_arr);
 	
-	std::vector<double> attr(to_fit.begin(), to_fit.end());
+//	std::vector<double> attr(to_fit.begin(), to_fit.end());
 	Support_Vector_Machine svm;
-	svm.fit(attr, cls);
+	svm.fit(attr_arr, cls_arr);
 	
 	return 0;
 }
