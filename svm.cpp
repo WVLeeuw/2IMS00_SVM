@@ -1,6 +1,7 @@
 // Author: Wouter Leeuw
 // SVM implementation based on OpenCV
 
+/*
 #include "opencv/modules/core/include/opencv2/core.hpp"
 #include "opencv/modules/imgproc/include/opencv2/imgproc.hpp"
 #include "opencv/modules/imgcodecs/include/opencv2/imgcodecs.hpp"
@@ -9,8 +10,85 @@
 
 using namespace cv;
 using namespace cv::ml;
+*/
 
-class Support_Vector_Machine {
+class basic_Support_Vector_Machine {
+	// initializaiton
+	private:
+	double lrate = 0.005;
+	double threshold = 0.005;
+	double w1 = 1;
+	double b = 0;
+	double MAX_ITER = 1000000;
+	
+	public:
+	// Gives the loss for a data point
+	double calc_loss(int &x1, int &y, double &w1, double &b) {
+	
+		double loss = 0;
+		
+		if (y==1) {
+			loss = 1 - (w1 * x1 + b);
+		} else {
+			loss = 1 + (w1 * x1 + b);
+		}
+		
+		if (loss < 0) {
+			loss = 0;
+		}
+		
+		return loss;
+	}
+	
+	// Gives the cost at a training state
+	double calc_cost(std::vector<int> &x1, std::vector<int> &y, double w1, double b, double &dw1, double &db) {
+		
+		int n = static_cast<int>(y.size());
+		
+		double cost = 0;
+		dw1 = 0;
+		db = 0;
+		
+		for (int i = 0; i < n; i++) {
+			double loss = calc_loss(x1[i], y[i], w1, b);
+			cost += loss;
+			if (loss > 0) {
+				dw1 += (-x1[y] * y[i]);
+				db += (-y[i]);
+			}
+		}
+		
+		cost /= n;
+		dw1 /= n;
+		db /= n;
+		return cost;
+	}
+	
+	void fit(std::vector<int> &x1, std::vector<int> &y) {
+	
+		// Initialization of weight and bias updates
+		double dw1 = 0;
+		double db = 0;
+		
+		int iter = 0;
+		
+		while(true) {
+			double cost = calc_cost(x1, y, w1, b, dw1, db);
+			if (iter % 1000 == 0) {
+				std::cout << "Iteration: " << iter << " cost = " << cost << " weight update = " << dw1 << " bias update = " db << std::endl;
+			}
+			if (abs(dw1) < threshold && abs(db) < threshold || iter >= MAX_ITER) {
+				std::cout << "y = " << w1 << " * x1 + " << b << std::endl;
+				break; 
+			}
+			w1 -= lrate * dw1;
+			b -= lrate * db;
+		}		
+	}
+}
+
+/*
+class OpenCV_Support_Vector_Machine {
 	// Initialization
 	Ptr<SVM> svm = SVM::create();
 	svm -> setType(SVM::C_SVC);
@@ -59,3 +137,4 @@ class Support_Vector_Machine {
 		waitKey(0);		
 	}
 };
+*/

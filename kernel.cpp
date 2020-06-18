@@ -524,7 +524,9 @@ int32_t test_svm_computation(e_role role, const std::string& address, uint16_t p
 		s1 = circ -> PutSIMDINGate(nvals, split_p1.data(), 16, SERVER);
 		s2 = circ -> PutSIMDINGate(nvals, split_p2.data(), 16, CLIENT);
 		
-		s_out = build_kernel_circuit(s1, s2, nvals, 16, circ);
+		s1 = circ -> PutADDGate(s1, s2);
+		
+		s_out = build_kernel_circuit(s1, s1, nvals, 16, circ);
 		
 		s_out = circ -> PutOUTGate(s_out, ALL);
 		
@@ -548,7 +550,7 @@ int32_t test_svm_computation(e_role role, const std::string& address, uint16_t p
 	std::copy(cls.begin(), cls.end(), cls_arr);
 	
 //	std::vector<double> attr(to_fit.begin(), to_fit.end());
-	Support_Vector_Machine svm;
+	basic_Support_Vector_Machine svm;
 	svm.fit(attr_arr, cls_arr);
 	
 	return 0;
