@@ -98,7 +98,7 @@ void read_absenteeism(std::vector<int> &cls, std::vector<std::vector<double>> &d
 }
 
 void read_breast_cancer(std::vector<int> &cls, std::vector<std::vector<double>> &data) {
-	std::string filename = "Datasets/breast-cancer.data";
+	std::string filename = "Datasets/breast_cancer/breast-cancer.data";
 	chdir("..");
 	
 	std::ifstream in(filename);
@@ -359,7 +359,7 @@ void read_adult(std::vector<int> &cls, std::vector<std::vector<double>> &data) {
 }
 
 void read_balance_scale(std::vector<int> &cls, std::vector<std::vector<double>> &data) {
-	std::string filename = "Datasets/balance_scale/balance-scale-server.data";
+	std::string filename = "Datasets/balance_scale/balance-scale.data";
 	chdir("..");
 	
 	std::ifstream in(filename);
@@ -542,16 +542,16 @@ int32_t test_svm_computation(e_role role, const std::string& address, uint16_t p
 	}
 	
 	// Copy attributes to array
-	int attr_arr[data_vals];
-	std::copy(to_fit.begin(), to_fit.end(), attr_arr);
+//	int attr_arr[data_vals];
+//	std::copy(to_fit.begin(), to_fit.end(), attr_arr);
 	
 	// Copy class labels to array
-	int cls_arr[data_vals];
-	std::copy(cls.begin(), cls.end(), cls_arr);
+//	int cls_arr[data_vals];
+//	std::copy(cls.begin(), cls.end(), cls_arr);
 	
-//	std::vector<double> attr(to_fit.begin(), to_fit.end());
+	std::vector<double> attr(to_fit.begin(), to_fit.end());
 	basic_Support_Vector_Machine svm;
-	svm.fit(attr_arr, cls_arr);
+	svm.fit(attr, cls);
 	
 	return 0;
 }
